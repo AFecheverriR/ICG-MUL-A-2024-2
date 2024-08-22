@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRAZADO DE POLIGONOS REGULARES</title>
+    <style>
+        body {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 10px solid rgb(1, 35, 99);
+        }
+    </style>
+</head>
+<body> 
+    <h1>TRAZADO DE POLIGONOS REGULARES</h1>
+    
+    <div id="controls">
+        <label for="lados">Número de lados:</label>
+        <input type="number" id="lados" min="3" value="3">
+        
+        <label for="sideLength">Longitud del lado:</label>
+        <input type="number" id="sideLength" min="1" value="50">
+        
+        <button onclick="dibujar()">Dibujar</button>
+        <button onclick="borrar()">Borrar</button>
+    </div>
+    
+    <canvas id="canvas" width="1200" height="800"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function dibujar() {
+            const lados = parseInt(document.getElementById('lados').value);
+            const sideLength = parseFloat(document.getElementById('sideLength').value);
+            
+            if (lados < 3 || sideLength <= 0) {
+                alert('Ingrese un número de lados mayor o igual a 3 y una longitud de lado positiva.');
+                return;
+            }
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = (sideLength / (2 * Math.sin(Math.PI / lados)));
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            
+            // Ajustar el ángulo para que el polígono esté "derecho"
+            const startAngle = -Math.PI / 2;
+            
+            for (let i = 0; i < lados; i++) {
+                const angle = startAngle + (2 * Math.PI / lados) * i;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.closePath();
+            ctx.stroke();
+        }
+        
+        function borrar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
