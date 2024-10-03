@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figura Poligonal</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+        #centroide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Figura Poligonal</h1>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <br>
+    <button id="toggleCentroid">Mostrar/Ocultar Centroide</button>
+    <p id="resultado"></p>
+
+    <script>
+        // Clase Punto
+        class Punto {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        // Definición de los puntos
+        const puntos = [
+            new Punto(0, 0),
+            new Punto(2, 1),
+            new Punto(1, 2),
+            new Punto(0, 2),
+            new Punto(-1, 1),
+            new Punto(-1, -1)
+        ];
+
+        // Calcular el centroide
+        function calcularCentroide(puntos) {
+            const suma = puntos.reduce((acc, punto) => {
+                return { x: acc.x + punto.x, y: acc.y + punto.y };
+            }, { x: 0, y: 0 });
+            return new Punto(suma.x / puntos.length, suma.y / puntos.length);
+        }
+
+        // Función para calcular el ángulo respecto al centroide
+        function anguloDesdeCentroide(punto, centroide) {
+            return Math.atan2(punto.y - centroide.y, punto.x - centroide.x);
+        }
+
+        // Ordenar los puntos por ángulo
+        function ordenarPuntos(puntos, centroide) {
+            return puntos.sort((a, b) => anguloDesdeCentroide(a, centroide) - anguloDesdeCentroide(b, centroide));
+        }
+
+        // Calcular el producto cruzado
+        function productoCruzado(o, a, b) {
+            return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+        }
+
+        // Verificar la orientación de los productos cruzados
+        function verificarConvexidad(puntos) {
+            const productosCruzados = [];
+            const n = puntos.length;
+
+            for (let i = 0; i < n; i++) {
+                const o = puntos[i];
+                const a = puntos[(i + 1) % n];
+                const b = puntos[(i + 2) % n];
+                const cp = productoCruzado(o, a, b);
+                productosCruzados.push(cp);
+            }
+
+            const positivo = productosCruzados.every(cp => cp > 0);
+            const negativo = productosCruzados.every(cp => cp < 0);
+
+            return positivo || negativo;
+        }
+
+        // Dibujar la figura poligonal
+        function dibujarFigura(puntos, centroide, mostrarCentroide) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(puntos[0].x * 50 + 250, 250 - puntos[0].y * 50);
+            for (const punto of puntos) {
+                ctx.lineTo(punto.x * 50 + 250, 250 - punto.y * 50);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            // Dibujar el centroide si se solicita
+            if (mostrarCentroide) {
+                ctx.beginPath();
+                ctx.arc(centroide.x * 50 + 250, 250 - centroide.y * 50, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+
+                // Dibujar líneas desde el centroide a cada punto
+                ctx.strokeStyle = 'red';
+                for (const punto of puntos) {
+                    ctx.beginPath();
+                    ctx.moveTo(centroide.x * 50 + 250, 250 - centroide.y * 50);
+                    ctx.lineTo(punto.x * 50 + 250, 250 - punto.y * 50);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Inicialización
+        const centroide = calcularCentroide(puntos);
+        const puntosOrdenados = ordenarPuntos(puntos, centroide);
+        const esConvexa = verificarConvexidad(puntosOrdenados);
+        const resultado = esConvexa ? "Los puntos forman una figura convexa." : "Los puntos no forman una figura convexa.";
+        document.getElementById('resultado').innerText = resultado;
+
+        // Mostrar/ocultar el centroide
+        let mostrarCentroide = false;
+        document.getElementById('toggleCentroid').addEventListener('click', () => {
+            mostrarCentroide = !mostrarCentroide;
+            dibujarFigura(puntosOrdenados, centroide, mostrarCentroide);
+        });
+
+        // Dibujar inicialmente
+        dibujarFigura(puntosOrdenados, centroide, mostrarCentroide);
+    </script>
+</body>
+</html>
